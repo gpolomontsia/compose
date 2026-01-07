@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # SERVEI 1: El teu servidor Web (Front-end)
+  meva-web:
+    image: nginx:alpine
+    ports:
+      - "8080:80"        # Entres per localhost:8080
+    volumes:
+      - ./index.html:/usr/share/nginx/html/index.html # Muntem només el fitxer
+    networks:
+      - la-meva-xarxa    # Connectat a la nostra xarxa privada
+
+  # SERVEI 2: La Base de Dades (Back-end simulat)
+  base-dades:
+    image: mariadb:10.6
+    environment:
+      MYSQL_ROOT_PASSWORD: root # Obligatori per MariaDB
+      MYSQL_DATABASE: el_meu_projecte   # Crea aquesta DB automàticament
+      MYSQL_USER: gabriel
+      MYSQL_PASSWORD: gabriel
+    volumes:
+      - db-data:/var/lib/mysql # Volum anomenat (persistent)
+    networks:
+      - la-meva-xarxa
+
+  # SERVEI 3: Interfície visual per la Base de Dades
+  gestor-db:
+    image: adminer
+    ports:
+      - "8081:8080"      # Entres per localhost:8081
+    networks:
+      - la-meva-xarxa
+    depends_on:          # Espera que la DB arranqui abans de començar
+      - base-dades
+
+# Definició de volums persistents (per no perdre dades si apagues)
+volumes:
+  db-data:
+
+# Definició de xarxes
+networks:
+  la-meva-xarxa:
